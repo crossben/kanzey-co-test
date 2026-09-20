@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'motion/react'
 import { usePrefersReducedMotion } from '@/lib/use-reduced-motion'
@@ -13,6 +13,11 @@ import { RollingPrice, PriceAnnouncement } from './rolling-price'
 import { departures } from '@/lib/data/departures'
 import { computeTotal, seatsLeft } from '@/lib/pricing'
 import { buildPaymentHref } from '@/lib/order'
+import {
+  parsePreferences,
+  preferencesSnapshot,
+  subscribePreferences,
+} from '@/lib/preferences'
 import { formatXOF } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Event } from '@/lib/types'
@@ -34,10 +39,20 @@ const VENUE_POINT: [number, number] = [80, 60]
  */
 export function PurchasePanel({ event }: { event: Event }) {
   const [withShuttle, setWithShuttle] = useState(false)
-  const [departureId, setDepartureId] = useState<string | undefined>()
+  const [chosenDepartureId, setChosenDepartureId] = useState<string | undefined>()
   const [slot, setSlot] = useState<string | undefined>()
   const reduced = usePrefersReducedMotion()
 
+  // Quartier habituel enregistré depuis le profil.
+  const prefsRaw = useSyncExternalStore(subscribePreferences, preferencesSnapshot, () => null)
+  const favoriteId = useMemo(
+    () => parsePreferences(prefsRaw).favoriteDepartureId,
+    [prefsRaw],
+  )
+
+  // État dérivé plutôt qu'un effet d'initialisation : le choix explicite de
+  // l'utilisateur prime toujours, la préférence ne s'applique qu'à défaut.
+  const departureId = chosenDepartureId ?? favoriteId
   const departure = departures.find((d) => d.id === departureId)
   const activeDeparture = withShuttle ? departure : undefined
   const total = computeTotal(event, activeDeparture)
@@ -113,7 +128,7 @@ export function PurchasePanel({ event }: { event: Event }) {
               <DeparturePicker
                 departures={departures}
                 selectedId={departureId}
-                onSelect={setDepartureId}
+                onSelect={setChosenDepartureId}
                 slot={slot}
                 onSlotChange={setSlot}
                 venue={VENUE_POINT}
