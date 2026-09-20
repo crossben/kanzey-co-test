@@ -180,6 +180,44 @@
 }
 
 /* ------------------------------------------------------------------
+   Couleur d'ambiance — le « Flux Rythmé » de la page d'accueil.
+
+   Un dégradé ne s'interpole pas en CSS : `transition: background` sur un
+   `radial-gradient` produit un saut brutal. En revanche, une propriété
+   personnalisée ENREGISTRÉE via `@property` est typée `<color>` et devient
+   donc animable. La bascule d'ambiance est ainsi fluide, sans JavaScript
+   d'interpolation et sans re-rendu React.
+   ------------------------------------------------------------------ */
+@property --ambient {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f07f00;
+}
+
+:root {
+  --ambient: #f07f00;
+  transition: --ambient 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ambient-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 90% 55% at 50% -10%,
+      color-mix(in oklab, var(--ambient) 26%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 85% 20%,
+      color-mix(in oklab, var(--ambient) 12%, transparent),
+      transparent 70%
+    );
+}
+
+/* ------------------------------------------------------------------
    Badge « bientôt » — la seule animation imposée par le brief (§3.5).
 
    Les tirets défilent autour du badge comme l'anneau perforé du logo

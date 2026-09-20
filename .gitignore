@@ -48,3 +48,6 @@ next-env.d.ts
 
 # photos sources (retraitées par scripts/duotone.mjs)
 /public/events/raw/
+
+# config pnpm locale à la machine (chemin de store absolu)
+.npmrc

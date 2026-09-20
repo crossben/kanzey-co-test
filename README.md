@@ -92,8 +92,61 @@ c'est mieux)_
 
 ## Innovation technique
 
-_(à compléter — pourquoi cette technologie, et ce qu'elle apporte que le CSS
-classique n'aurait pas permis)_
+Le critère retenu pour chaque technologie : **qu'apporte-t-elle que le CSS
+classique n'aurait pas permis ?** Une technologie qui n'y répond pas n'est pas
+utilisée — le brief met en garde contre la complexité gratuite.
+
+### Propriété personnalisée enregistrée (`@property`) — couleur d'ambiance
+
+La page d'accueil change de couleur d'ambiance selon l'événement survolé ou
+centré à l'écran. Un dégradé ne s'interpole pas en CSS : `transition` sur un
+`radial-gradient` produit un saut brutal.
+
+La solution est d'enregistrer `--ambient` via `@property` avec le type
+`<color>`. Une propriété personnalisée typée devient **animable**, ce qu'une
+variable CSS ordinaire n'est pas. La bascule est donc fluide, sans boucle
+d'interpolation en JavaScript et sans re-rendu React — la valeur est écrite
+directement sur `documentElement`.
+
+### GSAP SplitText — entrée du titre
+
+Le titre se révèle caractère par caractère. En CSS, il faudrait écrire un
+`<span>` et un délai par caractère dans le JSX : le texte devient illisible
+pour un lecteur d'écran, et changer le libellé oblige à refaire l'animation.
+
+SplitText découpe au runtime et restaure le DOM d'origine au démontage. Son
+option `autoSplit` redécoupe automatiquement quand la police définitive
+remplace la police de repli — sans quoi l'animation se déclencherait sur des
+positions de caractères qui bougent ensuite.
+
+### GSAP ScrollTrigger — orchestration au scroll
+
+Deux usages distincts sur la page d'accueil :
+
+1. l'entrée en cascade des cartes, déclenchée à l'approche de la section ;
+2. **la couleur d'ambiance qui suit la carte la plus proche du centre de
+   l'écran** — indispensable sur mobile, où le survol n'existe pas.
+
+Le CSS ne sait pas piloter une séquence en fonction de la position de défilement.
+`IntersectionObserver` couvrirait le second cas, mais pas le premier, et
+imposerait de recoder la logique de seuils que ScrollTrigger fournit.
+
+### Ce qui reste volontairement en CSS
+
+Le badge « bientôt » anime `stroke-dashoffset` en CSS pur. Une boucle
+décorative n'a besoin ni de JavaScript ni de re-rendu, et l'animation reste
+composée par le GPU. Y mettre GSAP serait exactement la complexité gratuite
+que le brief reproche.
+
+### Accessibilité des animations
+
+Toutes les animations décoratives sont encadrées par
+`gsap.matchMedia('(prefers-reduced-motion: no-preference)')` : sous cette
+préférence, elles **n'existent pas** plutôt que d'être accélérées. Vérifié —
+le titre et les six cartes restent à une opacité de 1 sans animation.
+
+En revanche, la couleur d'ambiance reste active quelle que soit la préférence :
+elle porte une information (quelle carte est active), elle n'est pas décorative.
 
 ---
 

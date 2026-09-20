@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Geist, Geist_Mono } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { DesktopHeader } from '@/components/nav/desktop-header'
 import { MobileTabBar } from '@/components/nav/mobile-tab-bar'
+import { AmbientBackdrop } from '@/components/home/ambient'
 import './globals.css'
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <AmbientBackdrop />
           <DesktopHeader />
           {children}
           <MobileTabBar />

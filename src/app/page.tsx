@@ -1,43 +1,49 @@
-import { Ticket } from '@/components/ticket/ticket'
+import { Hero } from '@/components/home/hero'
+import { UnifiedSearch } from '@/components/home/unified-search'
+import { Shortcuts } from '@/components/home/shortcuts'
+import { EventRail } from '@/components/home/event-rail'
+import { TransportTeaser } from '@/components/home/transport-teaser'
 import { events } from '@/lib/data/events'
-import { computeTotal } from '@/lib/pricing'
-import { getDeparture } from '@/lib/data/departures'
+import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
 
-/**
- * Page de contrôle du design system.
- * Provisoire : remplacée par la page d'accueil en phase 3.
- */
 export default function Home() {
-  const plateau = getDeparture('plateau')!
+  // Les plus proches d'abord : c'est l'ordre utile pour qui cherche une sortie.
+  const upcoming = [...events].sort((a, b) => a.date.localeCompare(b.date))
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-10 p-6">
-      <header className="space-y-2">
-        <h1 className="font-display text-4xl leading-tight">Fodium — design system</h1>
-        <p className="text-muted-foreground">
-          Contrôle des tokens et de la primitive Ticket. Provisoire.
-        </p>
-      </header>
+    <main className="mx-auto w-full max-w-6xl px-5 pb-32 lg:px-6 lg:pb-24">
+      <Hero />
 
-      <section className="space-y-4">
-        <h2 className="font-display text-xl">Billets — variante mini</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event, i) => (
-            <Ticket key={event.id} event={event} priority={i < 3} />
-          ))}
-        </div>
+      <section className="mt-10 lg:mt-14">
+        <UnifiedSearch />
       </section>
 
-      <section className="space-y-4">
-        <h2 className="font-display text-xl">Pass combiné — billet + navette</h2>
-        <div className="max-w-md">
-          <Ticket
-            event={events[0]}
-            variant="full"
-            shuttle={{ district: plateau.district, time: '17:00' }}
-            total={computeTotal(events[0], plateau)}
-          />
+      <section className="mt-6">
+        <Shortcuts />
+      </section>
+
+      <section className="mt-16 lg:mt-24">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <h2 className="font-display text-2xl leading-tight lg:text-3xl">
+            À venir
+          </h2>
+          <Link
+            href="/evenements"
+            className="group inline-flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Tout voir
+            <ArrowUpRight
+              className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              aria-hidden
+            />
+          </Link>
         </div>
+        <EventRail events={upcoming} />
+      </section>
+
+      <section className="mt-16 lg:mt-24">
+        <TransportTeaser />
       </section>
     </main>
   )
