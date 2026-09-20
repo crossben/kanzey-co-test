@@ -45,3 +45,6 @@ next-env.d.ts
 
 # artefacts d'inspection navigateur
 /.playwright-mcp/
+
+# photos sources (retraitées par scripts/duotone.mjs)
+/public/events/raw/

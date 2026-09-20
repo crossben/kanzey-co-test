@@ -107,6 +107,25 @@ _(à compléter)_
 
 ---
 
+## Données et visuels
+
+Aucun backend : les données sont mockées en TypeScript dans `src/lib/data/`.
+Elles sont ancrées dans la réalité dakaroise — lieux, moyens de paiement et
+devise relevés sur le site Fodium existant, quartiers de départ et liaisons
+interurbaines réels.
+
+Les photos proviennent d'Unsplash (licence libre). Elles ne sont pas utilisées
+telles quelles : `scripts/duotone.mjs` leur applique un duotone calé sur la
+couleur d'ambiance de chaque événement. Le traitement est fait au build et non
+en CSS, car un filtre CSS se recalcule à chaque repaint et saccade le scroll.
+
+```bash
+node scripts/fetch-photos.mjs   # télécharge les sources dans public/events/raw/
+node scripts/duotone.mjs        # produit les visuels traités dans public/events/
+```
+
+---
+
 ## Accessibilité
 
 - `prefers-reduced-motion` respecté : les animations décoratives s'annulent.
