@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { ViewTransition } from 'react'
+import { ViewTransition, type ReactNode } from 'react'
 import type { Event } from '@/lib/types'
 import { formatXOF, formatEventDate } from '@/lib/format'
 import { Perforation } from './perforation'
@@ -33,6 +33,13 @@ type TicketProps = {
    * l'impression qu'un seul billet traverse le parcours.
    */
   morphName?: string
+  /**
+   * Souche supplémentaire, détachée par une perforation.
+   *
+   * Sert au QR de validation après paiement : le billet ne change pas de
+   * nature, il gagne une souche — comme lorsqu'on y ajoute la navette.
+   */
+  footer?: ReactNode
   className?: string
 }
 
@@ -51,6 +58,7 @@ export function Ticket({
   priority = false,
   sizes,
   morphName,
+  footer,
   className = '',
 }: TicketProps) {
   const headingId = `ticket-${event.id}-title`
@@ -123,6 +131,15 @@ export function Ticket({
               Navette · <span className="text-muted-foreground">{shuttle.district}</span>
             </span>
             <span className="font-mono text-muted-foreground">{shuttle.time}</span>
+          </div>
+        </>
+      )}
+
+      {footer && (
+        <>
+          <Perforation />
+          <div data-testid="ticket-footer" className="px-4 pb-4">
+            {footer}
           </div>
         </>
       )}

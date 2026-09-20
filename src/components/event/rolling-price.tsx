@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { animate, motion, useMotionValue, useTransform, useReducedMotion } from 'motion/react'
+import { animate, motion, useMotionValue, useTransform } from 'motion/react'
+import { usePrefersReducedMotion } from '@/lib/use-reduced-motion'
 import { formatXOF } from '@/lib/format'
 
 /**
@@ -22,7 +23,7 @@ export function RollingPrice({
   value: number
   className?: string
 }) {
-  const reduced = useReducedMotion()
+  const reduced = usePrefersReducedMotion()
   const amount = useMotionValue(value)
   const label = useTransform(amount, (v) => formatXOF(Math.round(v)))
 

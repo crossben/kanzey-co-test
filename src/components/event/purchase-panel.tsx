@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import Link from 'next/link'
+import { AnimatePresence, motion } from 'motion/react'
+import { usePrefersReducedMotion } from '@/lib/use-reduced-motion'
 import { Check, Ticket as TicketIcon, Bus } from 'lucide-react'
 import { Ticket } from '@/components/ticket/ticket'
 import { Button } from '@/components/ui/button'
@@ -10,6 +12,7 @@ import { FillGauge } from './fill-gauge'
 import { RollingPrice, PriceAnnouncement } from './rolling-price'
 import { departures } from '@/lib/data/departures'
 import { computeTotal, seatsLeft } from '@/lib/pricing'
+import { buildPaymentHref } from '@/lib/order'
 import { formatXOF } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Event } from '@/lib/types'
@@ -33,7 +36,7 @@ export function PurchasePanel({ event }: { event: Event }) {
   const [withShuttle, setWithShuttle] = useState(false)
   const [departureId, setDepartureId] = useState<string | undefined>()
   const [slot, setSlot] = useState<string | undefined>()
-  const reduced = useReducedMotion()
+  const reduced = usePrefersReducedMotion()
 
   const departure = departures.find((d) => d.id === departureId)
   const activeDeparture = withShuttle ? departure : undefined
@@ -132,8 +135,15 @@ export function PurchasePanel({ event }: { event: Event }) {
             className="w-full"
             disabled={!canConfirm || soldOut}
             aria-describedby={!canConfirm ? 'shuttle-hint' : undefined}
+            asChild={canConfirm && !soldOut}
           >
-            {soldOut ? 'Complet' : `Payer ${formatXOF(total)}`}
+            {canConfirm && !soldOut ? (
+              <Link href={buildPaymentHref(event, activeDeparture, slot)}>
+                Payer {formatXOF(total)}
+              </Link>
+            ) : (
+              <span>{soldOut ? 'Complet' : `Payer ${formatXOF(total)}`}</span>
+            )}
           </Button>
           {!canConfirm && (
             <p id="shuttle-hint" className="text-center text-sm text-muted-foreground">

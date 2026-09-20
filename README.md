@@ -112,8 +112,68 @@ pass, pour qu'on voie ce qu'on achète.
 
 ## Le parcours de paiement réinventé
 
-_(à compléter — quel problème du paiement classique il résout, et pourquoi
-c'est mieux)_
+### Le problème
+
+Le parcours classique d'une billetterie sénégalaise enchaîne : formulaire,
+choix de l'opérateur, redirection vers l'application (Wave, Orange Money),
+retour vers le site, écran de confirmation.
+
+Cela produit trois défauts, dans l'ordre de gravité :
+
+1. **Le doute.** Entre la redirection et le retour, l'utilisateur ne sait plus
+   si la transaction a abouti. C'est le moment où l'on rafraîchit la page, où
+   l'on repaie par erreur, où l'on appelle le support.
+2. **La perte de vue de l'achat.** Dès la deuxième étape, ce qu'on achète
+   disparaît de l'écran. On paie un montant, plus un billet.
+3. **La confirmation qui ne prouve rien.** Un « ✓ Paiement réussi » est un
+   message, pas un objet. Il ne rassure que le temps de l'afficher.
+
+### La proposition — « Le Geste »
+
+**Un seul écran, une seule interaction continue.**
+
+Le billet, le moyen de paiement et la validation coexistent sur la même
+surface. Le billet arrive de la page précédente par morph et **reste visible
+du début à la fin** : on voit ce qu'on achète pendant qu'on paie.
+
+**Le moyen de paiement est un objet, pas une option.** Quatre jetons portant
+les couleurs des opérateurs — on reconnaît Wave ou Orange Money avant d'avoir
+lu le libellé. Une liste déroulante rend cette reconnaissance impossible.
+
+**La validation se fait en maintenant le doigt.** L'anneau perforé du logo
+Fodium se remplit segment par segment autour du point de contact.
+
+C'est le point central : **la durée du maintien EST la confirmation**. Un
+appui accidentel ne valide rien — relâcher avant la fin annule et l'anneau se
+vide. L'écran « êtes-vous sûr ? » devient donc inutile, et une étape disparaît
+du parcours sans rien perdre en sécurité. L'anneau dit en continu où l'on en
+est, ce qu'un bouton pressé ne dit jamais.
+
+**La confirmation n'est pas un message : c'est le billet qui devient valide.**
+Une troisième souche se détache, portant le QR et la référence — après la
+souche navette, dans la même logique de dépliage. Une preuve tangible qu'on
+peut montrer à l'entrée, pas une phrase qui disparaît au rechargement.
+
+Le QR est un **vrai QR code scannable**, pas un motif décoratif : vérifié par
+décodage du SVG effectivement rendu dans le navigateur.
+
+### Accessibilité du geste
+
+Un geste ne doit jamais être la seule voie d'accès au paiement.
+
+- Au clavier, **Entrée ou Espace valide directement** : maintenir une touche
+  n'est pas un geste fiable selon les technologies d'assistance.
+- Un bouton **« Valider sans maintenir »** est visible en permanence.
+- Sous `prefers-reduced-motion`, le maintien est désactivé : le bouton devient
+  un bouton ordinaire et son libellé change en conséquence — annoncer
+  « Maintenir » quand le maintien ne fonctionne plus serait un mensonge
+  d'interface.
+
+### Ce qui n'est pas fait
+
+Aucun paiement réel : le brief l'exclut explicitement (§6). La commande
+voyage dans l'URL, sans backend. Dans un vrai système, la référence du billet
+serait un identifiant signé côté serveur et non une valeur déterministe.
 
 ## Innovation technique
 
