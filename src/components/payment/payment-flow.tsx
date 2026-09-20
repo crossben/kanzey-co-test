@@ -13,6 +13,7 @@ import { getPaymentMethod } from '@/lib/data/payment-methods'
 import { formatXOF } from '@/lib/format'
 import type { QrMatrix } from '@/lib/qr'
 import type { ParsedOrder } from '@/lib/order'
+import { addToWallet } from '@/lib/wallet'
 import type { PaymentMethod } from '@/lib/types'
 
 /**
@@ -42,6 +43,25 @@ export function PaymentFlow({
 
   const { event, departure, slot, total } = order
   const info = method ? getPaymentMethod(method) : undefined
+
+  /**
+   * Le billet est déposé dans le portefeuille au moment de la validation.
+   *
+   * Dans un gestionnaire d'événement, pas dans un effet : l'achat est une
+   * action de l'utilisateur, pas une conséquence d'un rendu.
+   */
+  const confirmPayment = () => {
+    if (!method) return
+    addToWallet({
+      ref: reference,
+      slug: event.slug,
+      departureId: departure?.id,
+      slot,
+      method,
+      purchasedAt: new Date().toISOString(),
+    })
+    setPaid(true)
+  }
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-16">
@@ -135,7 +155,7 @@ export function PaymentFlow({
                 <HoldToPay
                   amount={formatXOF(total)}
                   disabled={!method}
-                  onComplete={() => setPaid(true)}
+                  onComplete={confirmPayment}
                 />
                 {!method && (
                   <p className="mt-4 text-center text-sm text-muted-foreground">

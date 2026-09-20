@@ -247,6 +247,36 @@ Le CSS ne sait pas piloter une séquence en fonction de la position de défileme
 `IntersectionObserver` couvrirait le second cas, mais pas le premier, et
 imposerait de recoder la logique de seuils que ScrollTrigger fournit.
 
+### Le portefeuille, et pourquoi pas de WebGL
+
+Le billet acheté atterrit dans **Mes billets** et y reste : il est conservé
+dans le navigateur (`localStorage`), survit au rechargement, et reste
+consultable hors connexion. Sans cela, le portefeuille ne serait qu'un décor
+et le parcours s'arrêterait au paiement.
+
+La lecture passe par `useSyncExternalStore` plutôt qu'un `useState` dans un
+effet : le portefeuille vit dans le navigateur, pas dans React, et c'est l'API
+prévue pour s'abonner à une source externe. Deux sources sont écoutées —
+l'événement `storage` pour les autres onglets, un événement interne pour
+l'onglet courant, que `storage` ignore par conception.
+
+Tous les accès au stockage sont protégés : navigation privée, stockage bloqué
+ou quota dépassé font apparaître un portefeuille vide, jamais une page en
+erreur. Un contenu corrompu ou écrit par un schéma antérieur est filtré.
+
+**Le billet est holographique** — une feuille irisée qui réagit à
+l'inclinaison de l'appareil, ou au pointeur sur desktop.
+
+La conception prévoyait du WebGL (React Three Fiber) pour cet effet. Il a été
+écarté : Three.js pèse environ 600 ko pour un reflet que des dégradés en
+`color-dodge` rendent de façon quasi identique, pour quelques centaines
+d'octets. Le brief demande que l'innovation serve l'expérience et prévient
+contre la complexité gratuite : ici le poids ne s'achetait aucun gain perçu.
+
+L'effet est volontairement discret. Une première version plus spectaculaire
+rendait le titre et le prix illisibles — un billet qu'on ne peut plus lire
+n'est plus un billet.
+
 ### Motion — dépliage du billet et prix qui roule
 
 Le sélecteur de navette apparaît et disparaît selon la formule choisie.
