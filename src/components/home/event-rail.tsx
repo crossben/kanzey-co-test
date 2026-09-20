@@ -83,7 +83,7 @@ export function EventRail({ events }: { events: Event[] }) {
           onFocus={() => setAmbient(event.accent)}
           className="rounded-2xl outline-none transition-transform duration-300 hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-brand"
         >
-          <Ticket event={event} priority={i < 3} />
+          <Ticket event={event} priority={i < 3} morphName={`ticket-${event.id}`} />
         </Link>
       ))}
     </div>

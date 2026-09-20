@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { ViewTransition } from 'react'
 import type { Event } from '@/lib/types'
 import { formatXOF, formatEventDate } from '@/lib/format'
 import { Perforation } from './perforation'
@@ -23,6 +24,15 @@ type TicketProps = {
   priority?: boolean
   /** Attribut `sizes` de l'image, à ajuster selon la grille qui l'accueille. */
   sizes?: string
+  /**
+   * Identité partagée pour le morph inter-pages.
+   *
+   * Le même nom des deux côtés d'une navigation fait que le navigateur anime
+   * l'élément de sa position de départ à sa position d'arrivée, au lieu de
+   * faire disparaître l'un et apparaître l'autre. C'est ce qui donne
+   * l'impression qu'un seul billet traverse le parcours.
+   */
+  morphName?: string
   className?: string
 }
 
@@ -40,37 +50,54 @@ export function Ticket({
   total,
   priority = false,
   sizes,
+  morphName,
   className = '',
 }: TicketProps) {
   const headingId = `ticket-${event.id}-title`
   const amount = total ?? event.priceFrom
 
+  const media = (
+    <div className={`relative ${variant === 'full' ? 'h-64' : 'h-40'}`}>
+      {/* Image décorative : le titre juste en dessous porte déjà
+          l'information, un alt dupliqué la ferait lire deux fois. */}
+      <Image
+        src={event.image}
+        alt=""
+        fill
+        priority={priority}
+        sizes={
+          sizes ??
+          (variant === 'full'
+            ? '(max-width: 640px) 100vw, 480px'
+            : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px')
+        }
+        className="object-cover"
+      />
+      <span className="absolute left-3 top-3 rounded-full bg-background/80 px-2.5 py-1 text-xs backdrop-blur">
+        {event.category}
+      </span>
+    </div>
+  )
+
   return (
     <article
       aria-labelledby={headingId}
       className={`overflow-hidden rounded-2xl bg-surface ring-1 ring-border ${className}`}
-      style={{ ['--accent' as string]: event.accent }}
+      // `--event-accent`, pas `--accent` : shadcn utilise déjà `--accent`
+      // pour une couleur de SURFACE. Écraser ce token repeignait en orange
+      // vif tous les éléments qui s'en servent comme fond.
+      style={{ ['--event-accent' as string]: event.accent }}
     >
-      <div className={`relative ${variant === 'full' ? 'h-64' : 'h-40'}`}>
-        {/* Image décorative : le titre juste en dessous porte déjà
-            l'information, un alt dupliqué la ferait lire deux fois. */}
-        <Image
-          src={event.image}
-          alt=""
-          fill
-          priority={priority}
-          sizes={
-            sizes ??
-            (variant === 'full'
-              ? '(max-width: 640px) 100vw, 480px'
-              : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px')
-          }
-          className="object-cover"
-        />
-        <span className="absolute left-3 top-3 rounded-full bg-background/80 px-2.5 py-1 text-xs backdrop-blur">
-          {event.category}
-        </span>
-      </div>
+      {/* `share="morph"` sans `default="none"` ferait s'animer cet élément à
+          CHAQUE transition de la page, pas seulement lors de son propre morph.
+          Les deux props vont toujours ensemble. */}
+      {morphName ? (
+        <ViewTransition name={morphName} share="morph" default="none">
+          {media}
+        </ViewTransition>
+      ) : (
+        media
+      )}
 
       <div className="space-y-1.5 p-4">
         <h3

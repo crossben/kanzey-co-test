@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeTotal } from './pricing'
+import { computeTotal, seatsLeft, soldRatio, isAlmostSoldOut } from './pricing'
 import type { Event, Departure } from './types'
 
 const event = { priceFrom: 5000 } as Event
@@ -20,5 +20,36 @@ describe('computeTotal', () => {
 
   it('navette absente : équivaut au billet seul', () => {
     expect(computeTotal(event, undefined)).toBe(computeTotal(event))
+  })
+})
+
+describe('seatsLeft', () => {
+  it('soustrait les places vendues', () => {
+    expect(seatsLeft({ capacity: 100, sold: 78 } as Event)).toBe(22)
+  })
+
+  it('ne descend jamais sous zéro', () => {
+    expect(seatsLeft({ capacity: 100, sold: 140 } as Event)).toBe(0)
+  })
+})
+
+describe('soldRatio', () => {
+  it('retourne un ratio entre 0 et 1', () => {
+    expect(soldRatio({ capacity: 200, sold: 50 } as Event)).toBe(0.25)
+  })
+
+  it('plafonne à 1 en cas de survente', () => {
+    expect(soldRatio({ capacity: 10, sold: 15 } as Event)).toBe(1)
+  })
+
+  it('évite la division par zéro', () => {
+    expect(soldRatio({ capacity: 0, sold: 0 } as Event)).toBe(0)
+  })
+})
+
+describe('isAlmostSoldOut', () => {
+  it('bascule à 90 %', () => {
+    expect(isAlmostSoldOut({ capacity: 100, sold: 89 } as Event)).toBe(false)
+    expect(isAlmostSoldOut({ capacity: 100, sold: 90 } as Event)).toBe(true)
   })
 })

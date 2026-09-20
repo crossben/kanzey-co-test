@@ -218,6 +218,29 @@
 }
 
 /* ------------------------------------------------------------------
+   Morph inter-pages — le « Billet Vivant ».
+
+   Le billet n'est jamais recréé d'un écran à l'autre : le navigateur anime
+   le même élément de sa position de départ vers sa position d'arrivée.
+   Le flou de mi-parcours masque les artefacts d'interpolation pixel à pixel
+   pendant le redimensionnement.
+   ------------------------------------------------------------------ */
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-image-pair(.morph) {
+  animation-name: fodium-morph-blur;
+}
+
+@keyframes fodium-morph-blur {
+  30% {
+    filter: blur(3px);
+  }
+}
+
+/* ------------------------------------------------------------------
    Badge « bientôt » — la seule animation imposée par le brief (§3.5).
 
    Les tirets défilent autour du badge comme l'anneau perforé du logo

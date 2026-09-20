@@ -83,7 +83,32 @@ De même, le libellé des boutons primaires est noir (`6,79:1`, AA) et non blanc
 
 ## Le pass combiné
 
-_(à compléter)_
+Sur la page d'un événement, deux formules : **Billet seul** ou
+**Billet + Navette**. Choisir la seconde fait apparaître le sélecteur de point
+de départ ; le total se recalcule ; un récapitulatif précède la validation.
+
+Trois décisions méritent d'être expliquées.
+
+**Le billet n'est pas remplacé, il se déplie.** La même primitive `<Ticket>`
+sert de carte sur l'accueil, de page sur l'événement, et d'objet payé dans le
+tunnel. Ajouter la navette ne construit pas un autre composant : le billet
+reçoit une souche supplémentaire, séparée par une perforation. L'objet reste
+le même, ce qui rend le pass combiné littéralement visible.
+
+**Le point de départ se choisit sur une carte, pas dans une liste
+déroulante.** Choisir un quartier est une décision géographique ; une liste
+oblige à reconstruire mentalement la carte. La carte est doublée d'une liste
+de quartiers — la carte seule serait inutilisable au clavier et peu praticable
+au doigt.
+
+**Le prix roule jusqu'à sa nouvelle valeur.** Un chiffre qu'on remplace ne se
+voit pas changer : l'œil constate qu'il est différent, sans percevoir le lien
+avec l'action. L'interpolation rend la cause visible. Le montant animé est
+masqué aux lecteurs d'écran, et la valeur finale est annoncée séparément —
+sinon chaque valeur intermédiaire serait lue.
+
+Le billet est collant sur desktop : il reste visible pendant qu'on compose son
+pass, pour qu'on voie ce qu'on achète.
 
 ## Le parcours de paiement réinventé
 
@@ -95,6 +120,37 @@ c'est mieux)_
 Le critère retenu pour chaque technologie : **qu'apporte-t-elle que le CSS
 classique n'aurait pas permis ?** Une technologie qui n'y répond pas n'est pas
 utilisée — le brief met en garde contre la complexité gratuite.
+
+### View Transitions API — le billet qui traverse les écrans
+
+C'est l'axe principal. Quand on ouvre un événement depuis l'accueil, la carte
+ne disparaît pas pour laisser place à une page : **le billet se déplie**. Le
+navigateur anime le même élément de sa position dans la grille vers sa
+position sur la page.
+
+Le CSS ne sait pas faire cela : une animation CSS vit dans un seul document et
+ne peut pas relier un élément qui disparaît à un élément qui apparaît sur une
+autre route. C'est précisément ce que l'API View Transitions ajoute.
+
+Concrètement : `<ViewTransition name={...} share="morph" default="none">` de
+part et d'autre de la navigation. Les deux props vont ensemble — sans
+`default="none"`, l'élément nommé s'animerait à **chaque** transition de la
+page, pas seulement lors de son propre morph.
+
+Deux conditions ont guidé l'implémentation :
+
+- Le morph n'a lieu que si la destination se rend dans le même commit que la
+  navigation. Les six pages d'événement sont donc **générées à la
+  compilation** : une page rendue à la demande afficherait d'abord un état de
+  chargement et casserait la continuité.
+- Sans support navigateur, la navigation fonctionne normalement, sans
+  animation.
+
+**Vérifié, pas supposé** : pendant la navigation, le navigateur anime bien
+`::view-transition-group(ticket-1)`, `::view-transition-image-pair(ticket-1)`,
+`-old` et `-new`, sur 420 ms, avec le flou de mi-parcours défini dans
+`globals.css` — ce flou masque les artefacts d'interpolation pendant le
+redimensionnement.
 
 ### Propriété personnalisée enregistrée (`@property`) — couleur d'ambiance
 
@@ -130,6 +186,28 @@ Deux usages distincts sur la page d'accueil :
 Le CSS ne sait pas piloter une séquence en fonction de la position de défilement.
 `IntersectionObserver` couvrirait le second cas, mais pas le premier, et
 imposerait de recoder la logique de seuils que ScrollTrigger fournit.
+
+### Motion — dépliage du billet et prix qui roule
+
+Le sélecteur de navette apparaît et disparaît selon la formule choisie.
+`AnimatePresence` anime aussi la **sortie** : sans lui, le bloc disparaîtrait
+d'un coup en revenant au billet seul, ce qu'une transition CSS ne peut pas
+couvrir puisque l'élément est démonté.
+
+Le ressort utilisé est interruptible : basculer deux fois rapidement entre les
+formules ne produit pas de saccade, l'animation repart de sa position
+courante. Une transition CSS, elle, n'est ni physique ni interruptible.
+
+### Les graphiques (evilcharts) et leur coût
+
+Deux graphiques seulement, chacun justifié par une décision d'achat :
+
+- **la jauge de remplissage** répond à « dois-je me dépêcher ? » ;
+- **la courbe d'affluence par créneau** répond à « quel départ sera chargé ? ».
+
+Un graphique qui n'informe aucune décision est décoratif, et se voit comme
+tel. Recharts pèse environ 100 ko : il n'est chargé que sur la page
+événement, jamais sur l'accueil.
 
 ### Ce qui reste volontairement en CSS
 
