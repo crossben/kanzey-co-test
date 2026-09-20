@@ -44,7 +44,11 @@
   --secondary-foreground: #141414;
 
   --muted: #f6f7fb;
-  --muted-foreground: #6b7280;
+  /* #6b7280 passait de justesse (4,62 sur le fond de page) mais échouait à
+     4,44 sur --accent, le fond crème des cartes actives. #5f6773 tient AA
+     avec marge sur les trois fonds clairs du système : page, surface
+     blanche et accent. */
+  --muted-foreground: #5f6773;
 
   --accent: #fff4e3;
   --accent-foreground: #b45309;

@@ -6,7 +6,7 @@ Reconception de la page d'accueil autour de la double offre **billetterie +
 Fodium Transport**, avec un système de pass combiné (billet + navette) et un
 parcours de paiement repensé.
 
-**Démo** : _(à compléter)_
+**Démo** : https://fodium.benhattab.pro
 
 ---
 
@@ -24,6 +24,27 @@ pnpm build      # build de production
 pnpm test       # tests unitaires (Vitest)
 pnpm typecheck  # vérification TypeScript
 pnpm lint       # ESLint
+```
+
+## Déploiement
+
+Image Docker autonome (`output: "standalone"`), servie derrière un reverse
+proxy.
+
+```bash
+docker compose up -d --build
+```
+
+Le conteneur expose le port 3000 sans port hôte fixe : le proxy le découvre.
+
+`NEXT_PUBLIC_SITE_URL` est lue **au build**, pas au démarrage — les pages sont
+précalculées, donc l'URL absolue de l'image de partage est figée dans le HTML
+généré. Elle est passée en `ARG` du Dockerfile, avec le domaine de production
+par défaut : un clone frais produit une image correcte sans étape manuelle,
+plutôt que des URLs `localhost` silencieuses. Pour un autre domaine :
+
+```bash
+docker build --build-arg NEXT_PUBLIC_SITE_URL=https://exemple.test -t fodium .
 ```
 
 ---
@@ -71,6 +92,11 @@ sombre, l'orange atteint 7,30:1 (AAA) et est utilisé tel quel.
 
 De même, le libellé des boutons primaires est noir (`6,79:1`, AA) et non blanc
 (`2,71:1`, échec).
+
+Un audit axe-core sur les sept routes, dans les deux thèmes, a révélé une
+seconde violation : le texte secondaire tombait à `4,44:1` sur le fond crème
+des cartes actives. Corrigé à la racine du système plutôt que sur le composant
+concerné — le même couple aurait resurgi ailleurs.
 
 **Typographie.** Le site actuel n'utilise aucune police custom.
 
@@ -296,8 +322,17 @@ Deux graphiques seulement, chacun justifié par une décision d'achat :
 - **la courbe d'affluence par créneau** répond à « quel départ sera chargé ? ».
 
 Un graphique qui n'informe aucune décision est décoratif, et se voit comme
-tel. Recharts pèse environ 100 ko : il n'est chargé que sur la page
-événement, jamais sur l'accueil.
+tel.
+
+Recharts pèse **132 ko gzippés** — le plus gros module du projet. Deux mesures
+le sortent du chemin critique : le découpage par route de Next.js le confine
+aux pages qui l'utilisent, et `next/dynamic` le retire du rendu initial de
+ces pages. Ni la jauge ni la courbe ne sont nécessaires au premier affichage :
+la courbe n'apparaît même qu'après le choix d'une navette. Les substituts
+occupent exactement la hauteur finale, sans décalage à l'arrivée.
+
+Effet mesuré sur le JavaScript initial : `/evenements` passe de 1334 à 877 ko
+décompressés, `/paiement` de 1350 à 911 ko.
 
 ### Ce qui reste volontairement en CSS
 
@@ -320,11 +355,68 @@ elle porte une information (quelle carte est active), elle n'est pas décorative
 
 ## Priorisation
 
-_(à compléter — ce qui a été priorisé et pourquoi)_
+La grille d'évaluation place 60 % de la note sur l'expérience (UX/animation,
+paiement, innovation, initiative) contre 15 % sur le code. L'effort a suivi
+cette répartition, avec trois principes.
+
+**Un objet plutôt qu'un enchaînement d'écrans.** Le billet est la primitive
+centrale : carte sur l'accueil, page sur l'événement, objet payé dans le
+tunnel, billet dans le portefeuille. Un seul composant, sans état, réutilisé
+tel quel. C'est ce qui rend le morph possible et le pass combiné lisible — et
+c'est aussi ce qui évite quatre variantes à maintenir.
+
+**Chaque technologie doit répondre à « qu'apporte-t-elle que le CSS n'aurait
+pas permis ? »** Celles qui n'y répondaient pas ont été écartées : le badge
+« bientôt » reste en CSS, et WebGL a été abandonné pour l'hologramme. Le brief
+prévient contre la complexité gratuite ; l'appliquer, c'est aussi savoir ne
+pas ajouter.
+
+**Tester ce qui casse silencieusement.** 90 tests couvrent le calcul du pass
+combiné, le formatage en XOF, la recherche unifiée, l'encodage de la commande
+dans l'URL, la persistance du portefeuille et les filtres. Les animations ne
+sont pas testées unitairement : le coût est élevé, la valeur faible, et elles
+se vérifient à l'œil. En revanche le parcours complet a été piloté dans un
+vrai navigateur à chaque étape — c'est ce qui a révélé la plupart des défauts.
+
+**Ce qui a été volontairement laissé léger** : le profil et la page teaser
+Transport, que le brief ne note pas directement. Ils font néanmoins quelque
+chose de réel plutôt que d'être des coquilles — le quartier favori enregistré
+au profil présélectionne la navette à l'achat.
 
 ## Avec plus de temps
 
-_(à compléter)_
+Par ordre de valeur décroissante.
+
+**Un vrai backend, et ce qu'il change.** Aujourd'hui la commande voyage dans
+l'URL et le billet vit dans `localStorage`. Un serveur apporterait une
+référence de billet signée (impossible à forger), la synchronisation entre
+appareils, et un vrai décompte des places — le taux de remplissage affiché
+est actuellement figé dans les données.
+
+**Les tests de bout en bout en intégration continue.** Les parcours ont été
+vérifiés au navigateur à chaque étape, mais manuellement. Les convertir en
+suite Playwright exécutée à chaque commit empêcherait une régression de
+passer inaperçue.
+
+**Le paiement réel.** L'intégration Wave, Orange Money et Free Money change la
+fin du parcours : le maintien déclencherait une demande côté opérateur, et il
+faudrait traiter l'attente et l'échec sans perdre la continuité qui fait tout
+l'intérêt du geste. C'est la partie la plus délicate à conserver.
+
+**Le mode hors connexion complet.** Les billets sont déjà lisibles hors
+connexion une fois la page chargée, mais l'application elle-même ne l'est pas.
+Un service worker rendrait le portefeuille consultable à l'entrée d'un
+événement où le réseau sature — situation courante, et précisément le moment
+où le billet doit s'afficher.
+
+**Les tests sur appareils réels.** Le reflet à l'inclinaison et le geste de
+maintien ont été validés en émulation. Le maintien, en particulier, demande un
+réglage à la main : 1,3 seconde est une hypothèse, pas une mesure.
+
+**L'internationalisation.** L'interface est en français. Le wolof est la
+langue véhiculaire au Sénégal, et l'anglais servirait les visiteurs
+internationaux — les Jeux Olympiques de la Jeunesse 2026, présents dans les
+données, en sont l'illustration.
 
 ---
 
@@ -349,6 +441,35 @@ node scripts/duotone.mjs        # produit les visuels traités dans public/event
 
 ## Accessibilité
 
-- `prefers-reduced-motion` respecté : les animations décoratives s'annulent.
-- Contrastes vérifiés AA dans les deux thèmes.
+Audit `axe-core` sur les sept routes, dans les deux thèmes : **zéro violation**
+WCAG 2.1 AA.
+
+- `prefers-reduced-motion` respecté : les animations décoratives **n'existent
+  pas** sous cette préférence, plutôt que d'être accélérées. Vérifié — titre
+  et cartes restent à une opacité de 1.
+- Le geste de paiement n'est jamais la seule voie : Entrée valide au clavier,
+  un bouton « Valider sans maintenir » est toujours visible, et sous
+  mouvement réduit le bouton redevient ordinaire — libellé compris.
+- Contrastes vérifiés AA dans les deux thèmes, y compris sur les fonds
+  d'accent.
+- Le montant animé est masqué aux lecteurs d'écran, la valeur finale annoncée
+  séparément : sinon chaque valeur intermédiaire serait lue.
 - Interface en français, `lang="fr"`.
+
+## Responsive
+
+Sept routes × cinq largeurs (360, 390, 768, 1024, 1440) : aucun débordement
+horizontal. La bascule barre flottante → header horizontal se fait exactement
+à 1024 px, conformément au brief §3.1 qui interdit la barre flottante sur
+desktop.
+
+## Performance
+
+- Images traitées au build (duotone), puis servies en WebP par Next.js —
+  148 ko de JPEG deviennent 39 ko à la largeur mobile. `sharp` est en
+  dépendance de production pour que l'optimisation fonctionne aussi dans
+  l'image Docker, où les devDependencies sont absentes.
+- Les six pages d'événement sont générées à la compilation. Ce n'est pas
+  qu'une optimisation : le morph n'a lieu que si la destination se rend dans
+  le même commit que la navigation.
+- Recharts différé (voir ci-dessus).

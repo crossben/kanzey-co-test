@@ -1,7 +1,7 @@
 'use client'
 
 import { DakarMap } from '@/components/map/dakar-map'
-import { AffluenceChart } from './affluence-chart'
+import { AffluenceChartLazy } from './charts-lazy'
 import { formatXOF } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Departure } from '@/lib/types'
@@ -79,7 +79,7 @@ export function DeparturePicker({
             Les barres indiquent l&apos;affluence prévue.
           </p>
 
-          <AffluenceChart slots={selected.slots} />
+          <AffluenceChartLazy slots={selected.slots} />
 
           <div className="mt-3 flex flex-wrap gap-2">
             {selected.slots.map((s) => {

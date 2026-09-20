@@ -1,0 +1,24 @@
+# Le contexte de build est envoyé au démon Docker : tout ce qui suit le
+# ferait gonfler de plusieurs centaines de mégaoctets sans servir au build.
+node_modules
+.next
+.git
+.gitignore
+
+# Documentation de travail, non livrée
+docs
+
+# Photos sources : seules les versions traitées par scripts/duotone.mjs
+# partent dans l'image.
+public/events/raw
+
+# Environnements locaux : .env.production est fourni par le serveur de build,
+# pas par le contexte.
+.env
+.env.local
+.env*.local
+
+# Artefacts de développement
+.playwright-mcp
+*.tsbuildinfo
+coverage

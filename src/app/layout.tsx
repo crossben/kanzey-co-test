@@ -24,10 +24,36 @@ const mono = Geist_Mono({
   display: 'swap',
 })
 
+/**
+ * Origine publique du site.
+ *
+ * Alimente `metadataBase`, donc l'URL absolue de l'image de partage. Sans
+ * elle, Next.js préfixe par `localhost:3000` et aucun réseau social ne peut
+ * récupérer l'image une fois le site déployé.
+ *
+ * Lue au BUILD, pas au démarrage : les pages sont précalculées, donc la
+ * valeur est figée dans le HTML généré. Elle doit être présente au moment
+ * du `next build` (c'est le rôle de `.env.production`).
+ */
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+
 export const metadata: Metadata = {
-  title: 'Fodium — Billetterie & Transport',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'Fodium — Billetterie & Transport',
+    template: '%s',
+  },
   description:
     "Achetez votre billet et votre navette en une seule fois. Événements à Dakar et trajets interurbains.",
+  openGraph: {
+    type: 'website',
+    locale: 'fr_SN',
+    siteName: 'Fodium',
+    title: 'Fodium — Un billet. Une navette. Un seul geste.',
+    description:
+      'Billetterie et transport au Sénégal — réservés ensemble, payés en une fois.',
+  },
+  twitter: { card: 'summary_large_image' },
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

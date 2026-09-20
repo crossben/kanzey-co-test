@@ -1,0 +1,14 @@
+name: fodium
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Doit correspondre au domaine servi par le reverse proxy : cette
+        # valeur est figée dans le HTML au moment du build.
+        NEXT_PUBLIC_SITE_URL: https://fodium.benhattab.pro
+    ports:
+      - "3000"
+    restart: unless-stopped

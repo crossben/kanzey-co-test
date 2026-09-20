@@ -8,7 +8,7 @@ import { Check, Ticket as TicketIcon, Bus } from 'lucide-react'
 import { Ticket } from '@/components/ticket/ticket'
 import { Button } from '@/components/ui/button'
 import { DeparturePicker } from './departure-picker'
-import { FillGauge } from './fill-gauge'
+import { FillGaugeLazy } from './charts-lazy'
 import { RollingPrice, PriceAnnouncement } from './rolling-price'
 import { departures } from '@/lib/data/departures'
 import { computeTotal, seatsLeft } from '@/lib/pricing'
@@ -81,7 +81,7 @@ export function PurchasePanel({ event }: { event: Event }) {
         />
 
         <div className="mt-5 rounded-2xl border border-border bg-surface p-4">
-          <FillGauge event={event} />
+          <FillGaugeLazy event={event} />
         </div>
       </div>
 
