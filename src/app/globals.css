@@ -179,8 +179,63 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ------------------------------------------------------------------
+   Badge « bientôt » — la seule animation imposée par le brief (§3.5).
+
+   Les tirets défilent autour du badge comme l'anneau perforé du logo
+   Fodium. Le motif « marching ants » signifie « en cours », ce qui colle
+   au message porté.
+
+   Hors utilitaires Tailwind à dessein : animer `stroke-dashoffset` et
+   piloter les propriétés géométriques SVG en CSS n'a pas d'équivalent
+   utilitaire. C'est le cas d'« animation avancée » prévu par le brief §4.
+   ------------------------------------------------------------------ */
+@keyframes fodium-dash-march {
+  to {
+    stroke-dashoffset: -24px;
+  }
+}
+
+@keyframes fodium-soon-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.68;
+  }
+}
+
+.soon-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Propriétés géométriques SVG pilotées en CSS : le tracé suit la taille
+   réelle du badge, quel que soit le texte. */
+.soon-ring rect {
+  x: 1px;
+  y: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  rx: 999px;
+  fill: none;
+  stroke: var(--color-brand);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 7;
+  animation: fodium-dash-march 1.3s linear infinite;
+}
+
+.soon-label {
+  animation: fodium-soon-breathe 2.6s ease-in-out infinite;
+}
+
 /* Le brief exige une interface vivante ; l'accessibilité exige de pouvoir
-   la calmer. Toute animation décorative s'annule ici. */
+   la calmer. Toute animation décorative s'annule ici. Le badge reste
+   parfaitement lisible une fois figé : les tirets et la couleur suffisent. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
